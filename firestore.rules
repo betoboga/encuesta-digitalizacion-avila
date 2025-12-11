@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // === ADMIN CHECK ===
+    function isAdmin() {
+      return request.auth != null
+             && request.auth.token.email == "admin@digitalizacionavila.es";
+    }
+
+    // === ENCUESTAS ===
+    match /surveys/{surveyId} {
+      allow read: if true; // para cargar encuestas públicas
+      allow create, update, delete: if isAdmin(); // solo el admin gestiona
+    }
+
+    // === RESPUESTAS ===
+    match /responses/{responseId} {
+      // Cualquiera puede enviar una respuesta (encuesta pública)
+      allow create: if true;
+
+      // Solo admin puede leer respuestas
+      allow read: if isAdmin();
+    }
+  }
+}
