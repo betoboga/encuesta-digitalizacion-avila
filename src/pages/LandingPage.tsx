@@ -253,119 +253,129 @@ export default function LandingPage() {
             </div>
 
             {/* Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-                {/* 1. Uso IA */}
-                <ChartCard title="Adopción de IA">
-                    <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                            <Pie
-                                data={iaUsageData}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={false}
-                                label={({ name, percent }: { name?: string; percent?: number }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                                outerRadius={80}
-                                fill="#8884d8"
-                                dataKey="value"
-                            >
-                                {iaUsageData.map((_entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip />
-                            <Legend />
-                        </PieChart>
-                    </ResponsiveContainer>
-                </ChartCard>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+                {/* Row 1: Key Pie Charts (Half width each) */}
+                <div className="md:col-span-1 lg:col-span-3">
+                    <ChartCard title="Adopción de IA">
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart>
+                                <Pie
+                                    data={iaUsageData}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    label={({ name, percent }: { name?: string; percent?: number }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                                    outerRadius={100}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                >
+                                    {iaUsageData.map((_entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                                <Legend />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </ChartCard>
+                </div>
 
-                {/* 2. Barreras */}
-                <ChartCard title="Top Barreras IA">
-                     <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={barriersData} layout="vertical" margin={{ left: 10, right: 10 }}>
-                            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                            <XAxis type="number" hide />
-                            <YAxis type="category" dataKey="name" width={80} style={{fontSize: '12px'}} interval={0}/>
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#ea580c" radius={[0, 4, 4, 0]} name="Votos" barSize={20} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </ChartCard>
+                <div className="md:col-span-1 lg:col-span-3">
+                    <ChartCard title="Evolución Productividad (5 años)">
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart>
+                                <Pie
+                                    data={productivityData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={60}
+                                    outerRadius={100}
+                                    label={({ percent }: { percent?: number }) => `${((percent || 0) * 100).toFixed(0)}%`}
+                                    fill="#2563eb"
+                                    dataKey="value"
+                                >
+                                    {productivityData.map((_entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                                <Legend verticalAlign="bottom" height={36} iconSize={10} wrapperStyle={{fontSize: '12px'}}/>
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </ChartCard>
+                </div>
 
-                {/* 3. Tecnologías IA */}
-                <ChartCard title="Tecnologías IA Más Usadas">
-                     <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={techData} layout="vertical" margin={{ left: 10 }}>
-                            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                            <XAxis type="number" hide />
-                            <YAxis type="category" dataKey="name" width={90} style={{fontSize: '11px'}} interval={0}/>
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#8884d8" radius={[0, 4, 4, 0]} name="Usuarios" barSize={20} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </ChartCard>
+                {/* Row 2: Complex Bar Charts (Half width each) */}
+                <div className="md:col-span-1 lg:col-span-3">
+                    <ChartCard title="Top Barreras IA">
+                         <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={barriersData} layout="vertical" margin={{ left: 10, right: 10 }}>
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                <XAxis type="number" hide />
+                                <YAxis type="category" dataKey="name" width={90} style={{fontSize: '12px'}} interval={0}/>
+                                <Tooltip />
+                                <Bar dataKey="value" fill="#ea580c" radius={[0, 4, 4, 0]} name="Votos" barSize={24} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </ChartCard>
+                </div>
 
-                {/* 4. Mejoras */}
-                <ChartCard title="Mejoras Percibidas por IA">
-                     <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={improvementsData}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                            <XAxis dataKey="name" style={{fontSize: '11px'}} interval={0} angle={-30} textAnchor="end" height={60}/>
-                            <YAxis />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#16a34a" radius={[4, 4, 0, 0]} name="Respuestas" />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </ChartCard>
+                <div className="md:col-span-1 lg:col-span-3">
+                    <ChartCard title="Tecnologías IA Más Usadas">
+                         <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={techData} layout="vertical" margin={{ left: 10 }}>
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                <XAxis type="number" hide />
+                                <YAxis type="category" dataKey="name" width={100} style={{fontSize: '12px'}} interval={0}/>
+                                <Tooltip />
+                                <Bar dataKey="value" fill="#8884d8" radius={[0, 4, 4, 0]} name="Usuarios" barSize={24} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </ChartCard>
+                </div>
 
-                {/* 5. Productividad */}
-                <ChartCard title="Evolución Productividad (5 años)">
-                    <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                            <Pie
-                                data={productivityData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={40}
-                                outerRadius={80}
-                                label={({ percent }: { percent?: number }) => `${((percent || 0) * 100).toFixed(0)}%`}
-                                fill="#2563eb"
-                                dataKey="value"
-                            >
-                                {productivityData.map((_entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip />
-                            <Legend verticalAlign="bottom" height={36} iconSize={10} wrapperStyle={{fontSize: '12px'}}/>
-                        </PieChart>
-                    </ResponsiveContainer>
-                </ChartCard>
+                {/* Row 3: Secondary Bar Charts (Third width each) */}
+                <div className="md:col-span-2 lg:col-span-2">
+                    <ChartCard title="Mejoras Percibidas">
+                         <ResponsiveContainer width="100%" height={250}>
+                            <BarChart data={improvementsData}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="name" style={{fontSize: '10px'}} interval={0} angle={-30} textAnchor="end" height={50}/>
+                                <YAxis />
+                                <Tooltip />
+                                <Bar dataKey="value" fill="#16a34a" radius={[4, 4, 0, 0]} name="Respuestas" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </ChartCard>
+                </div>
 
-                {/* 6. Herramientas Digitales */}
-                <ChartCard title="Top Herramientas Digitales">
-                     <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={digitalToolsData} layout="vertical" margin={{ left: 10 }}>
-                            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                            <XAxis type="number" hide />
-                            <YAxis type="category" dataKey="name" width={90} style={{fontSize: '11px'}} interval={0}/>
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#2563eb" radius={[0, 4, 4, 0]} name="Usuarios" barSize={20} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </ChartCard>
+                <div className="md:col-span-1 lg:col-span-2">
+                    <ChartCard title="Herramientas Digitales">
+                         <ResponsiveContainer width="100%" height={250}>
+                            <BarChart data={digitalToolsData} layout="vertical" margin={{ left: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                <XAxis type="number" hide />
+                                <YAxis type="category" dataKey="name" width={80} style={{fontSize: '10px'}} interval={0}/>
+                                <Tooltip />
+                                <Bar dataKey="value" fill="#2563eb" radius={[0, 4, 4, 0]} name="Usu." barSize={16} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </ChartCard>
+                </div>
 
-                {/* 7. Internet */}
-                <ChartCard title="Conectividad">
-                    <ResponsiveContainer width="100%" height={250}>
-                         <BarChart data={internetData}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                            <XAxis dataKey="name" style={{fontSize: '12px'}} />
-                            <YAxis />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#db2777" radius={[4, 4, 0, 0]} name="Usuarios" />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </ChartCard>
+                <div className="md:col-span-1 lg:col-span-2">
+                    <ChartCard title="Conectividad">
+                        <ResponsiveContainer width="100%" height={250}>
+                             <BarChart data={internetData}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="name" style={{fontSize: '11px'}} />
+                                <YAxis />
+                                <Tooltip />
+                                <Bar dataKey="value" fill="#db2777" radius={[4, 4, 0, 0]} name="Usu." />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </ChartCard>
+                </div>
             </div>
 
             {/* Recent Responses Table */}
