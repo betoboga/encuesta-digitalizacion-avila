@@ -18,7 +18,7 @@ import {
 } from 'recharts';
 import {  Map, Users, Cpu, FileText } from 'lucide-react';
 
-const COLORS = ['#16a34a', '#2563eb', '#9333ea', '#db2777', '#ea580c'];
+const COLORS = ['#16a34a', '#2563eb', '#9333ea', '#db2777', '#ea580c', '#06b6d4', '#f59e0b'];
 
 export default function LandingPage() {
   const { responses, loading } = useResponses();
@@ -47,9 +47,7 @@ export default function LandingPage() {
   const avgDigitalScore = useMemo(() => {
     if (!totalResponses) return 0;
     const sum = filteredData.reduce((acc, r) => {
-        // Map string values to numbers if they differ
         const val = r.answers['competencia_digital'];
-        // Assuming survey stores "muy_bajo"..."muy_alto", we map to 1-5 for avg
         const map: Record<string, number> = { 
             "muy_bajo": 1, "bajo": 2, "medio": 3, "alto": 4, "muy_alto": 5 
         };
@@ -58,14 +56,76 @@ export default function LandingPage() {
     return (sum / totalResponses).toFixed(1);
   }, [filteredData, totalResponses]);
 
-  // Charts Data Helpers
-  // getChartData removed as it was unused
+  // --- Data Helpers ---
+  const countMultiSelect = (key: string, labelMap?: Record<string, string>) => {
+    const counts: Record<string, number> = {};
+    filteredData.forEach(r => {
+      const val = r.answers[key] as string[] | string;
+      if (Array.isArray(val)) {
+        val.forEach(v => {
+             const label = labelMap?.[v] || v;
+             counts[label] = (counts[label] || 0) + 1;
+        });
+      } else if (typeof val === 'string' && val) {
+             const label = labelMap?.[val] || val;
+             counts[label] = (counts[label] || 0) + 1;
+      }
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, value]) => ({ name, value }));
+  };
 
+  const countSelect = (key: string, labelMap?: Record<string, string>) => {
+      const counts: Record<string, number> = {};
+      filteredData.forEach(r => {
+          const val = r.answers[key] as string;
+          if (val) {
+              const label = labelMap?.[val] || val;
+              counts[label] = (counts[label] || 0) + 1;
+          }
+      });
+      return Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, value]) => ({ name, value }));
+  };
+
+  // 1. Tecnologías más usadas
+  const techData = useMemo(() => countMultiSelect('tecnologias_ia', {
+      'riego_ia': 'Riego Auto.', 'prediccion_cosecha': 'Pred. Cosecha', 
+      'plagas_imagen': 'Det. Plagas', 'opt_alimentacion': 'Alimentación',
+      'meteo_avanzada': 'Meteo', 'analisis_suelos': 'Suelos',
+      'chatbots': 'Chatbots', 'no_uso': 'Ninguna'
+  }).filter(t => t.name !== 'Ninguna').slice(0, 5), [filteredData]);
+
+  // 2. Mejoras observadas
+  const improvementsData = useMemo(() => countMultiSelect('mejoras_ia', {
+      'tiempo': 'Tiempo', 'agua': 'Agua', 'insumos': 'Insumos',
+      'planificacion': 'Planif.', 'produccion': 'Producción',
+      'riesgo_plagas': 'Plagas', 'ninguna': 'Ninguna'
+  }).filter(t => t.name !== 'Ninguna'), [filteredData]);
+
+  // 3. Evolución productividad
+  const productivityData = useMemo(() => countSelect('evolucion_prod', {
+      'aumentado': 'Aumentado', 'mantiene': 'Se mantiene', 'disminuido': 'Disminuido'
+  }), [filteredData]);
+
+  // 4. Herramientas digitales
+  const digitalToolsData = useMemo(() => countMultiSelect('herramientas_digitales', {
+      'apps_cuaderno': 'Cuaderno Digital', 'software_gestion': 'Sw Gestión',
+      'riego_auto': 'Riego', 'gps': 'GPS', 'drones': 'Drones',
+      'sensores': 'Sensores', 'plataformas_precios': 'Precios', 'ninguna': 'Ninguna'
+  }).slice(0, 5), [filteredData]);
+
+  // 5. Conexión Internet
+  const internetData = useMemo(() => countSelect('tipo_internet', {
+      'fibra': 'Fibra', '4g_5g': '4G/5G', 'adsl': 'ADSL', 'no_limitada': 'Mala/Sin'
+  }), [filteredData]);
+
+  // Existing helpers (Adapted)
   const iaUsageData = useMemo(() => {
      const counts = { Si: 0, No: 0 };
      filteredData.forEach(r => {
-         // val was unused, just checking structure or we could check explicit fields
-         // Actually "tecnologias_ia" is multiselect. Let's use "uses IA vs doesn't".
          const techs = r.answers['tecnologias_ia'] as string[];
          if (Array.isArray(techs) && techs.length > 0 && !techs.includes('no_uso')) {
              counts.Si++;
@@ -80,21 +140,12 @@ export default function LandingPage() {
   }, [filteredData]);
 
   const barriersData = useMemo(() => {
-      const counts: Record<string, number> = {};
-      filteredData.forEach(r => {
-          const barriers = r.answers['barreras_ia'] as string[];
-          if (Array.isArray(barriers)) {
-              barriers.forEach(b => {
-                   // Shorten labels for chart
-                   const label = b === 'falta_internet' ? 'Internet' : b === 'coste' ? 'Coste' : b;
-                   counts[label] = (counts[label] || 0) + 1;
-              });
-          }
-      });
-      return Object.entries(counts)
-        .sort((a, b) => b[1] - a[1]) // Sort desc
-        .slice(0, 5) // Top 5
-        .map(([name, value]) => ({ name, value }));
+      return countMultiSelect('barreras_ia', {
+          'falta_internet': 'Internet', 'coste': 'Coste', 'formacion': 'Formación',
+          'tiempo': 'Tiempo', 'desconfianza': 'Desconfianza', 
+          'falta_jovenes': 'Relevo', 'utilidad': 'Utilidad',
+          'incompatible': 'Maquinaria', 'desconocimiento': 'Desconoc.'
+      }).slice(0, 5);
   }, [filteredData]);
 
   const getComarcaName = (id: string) => avilaLocations.find(c => c.id === id)?.name || id;
@@ -201,18 +252,19 @@ export default function LandingPage() {
                 />
             </div>
 
-            {/* Charts Row 1 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <ChartCard title="Adopción de Inteligencia Artificial">
-                    <ResponsiveContainer width="100%" height={300}>
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                {/* 1. Uso IA */}
+                <ChartCard title="Adopción de IA">
+                    <ResponsiveContainer width="100%" height={250}>
                         <PieChart>
                             <Pie
                                 data={iaUsageData}
                                 cx="50%"
                                 cy="50%"
                                 labelLine={false}
-                                label={({ name, percent }: { name?: string; percent?: number }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`}
-                                outerRadius={100}
+                                label={({ name, percent }: { name?: string; percent?: number }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                                outerRadius={80}
                                 fill="#8884d8"
                                 dataKey="value"
                             >
@@ -221,19 +273,96 @@ export default function LandingPage() {
                                 ))}
                             </Pie>
                             <Tooltip />
-                            <Legend verticalAlign="bottom" height={36}/>
+                            <Legend />
                         </PieChart>
                     </ResponsiveContainer>
                 </ChartCard>
 
-                <ChartCard title="Top 5 Barreras para adoptar IA">
-                     <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={barriersData} layout="vertical" margin={{ left: 20 }}>
+                {/* 2. Barreras */}
+                <ChartCard title="Top Barreras IA">
+                     <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={barriersData} layout="vertical" margin={{ left: 10, right: 10 }}>
                             <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                            <XAxis type="number" />
-                            <YAxis type="category" dataKey="name" width={100} />
+                            <XAxis type="number" hide />
+                            <YAxis type="category" dataKey="name" width={80} style={{fontSize: '12px'}} interval={0}/>
                             <Tooltip />
-                            <Bar dataKey="value" fill="#ea580c" radius={[0, 4, 4, 0]} name="Respuestas" />
+                            <Bar dataKey="value" fill="#ea580c" radius={[0, 4, 4, 0]} name="Votos" barSize={20} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+
+                {/* 3. Tecnologías IA */}
+                <ChartCard title="Tecnologías IA Más Usadas">
+                     <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={techData} layout="vertical" margin={{ left: 10 }}>
+                            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                            <XAxis type="number" hide />
+                            <YAxis type="category" dataKey="name" width={90} style={{fontSize: '11px'}} interval={0}/>
+                            <Tooltip />
+                            <Bar dataKey="value" fill="#8884d8" radius={[0, 4, 4, 0]} name="Usuarios" barSize={20} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+
+                {/* 4. Mejoras */}
+                <ChartCard title="Mejoras Percibidas por IA">
+                     <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={improvementsData}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                            <XAxis dataKey="name" style={{fontSize: '11px'}} interval={0} angle={-30} textAnchor="end" height={60}/>
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="value" fill="#16a34a" radius={[4, 4, 0, 0]} name="Respuestas" />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+
+                {/* 5. Productividad */}
+                <ChartCard title="Evolución Productividad (5 años)">
+                    <ResponsiveContainer width="100%" height={250}>
+                        <PieChart>
+                            <Pie
+                                data={productivityData}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={40}
+                                outerRadius={80}
+                                label={({ percent }: { percent?: number }) => `${((percent || 0) * 100).toFixed(0)}%`}
+                                fill="#2563eb"
+                                dataKey="value"
+                            >
+                                {productivityData.map((_entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend verticalAlign="bottom" height={36} iconSize={10} wrapperStyle={{fontSize: '12px'}}/>
+                        </PieChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+
+                {/* 6. Herramientas Digitales */}
+                <ChartCard title="Top Herramientas Digitales">
+                     <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={digitalToolsData} layout="vertical" margin={{ left: 10 }}>
+                            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                            <XAxis type="number" hide />
+                            <YAxis type="category" dataKey="name" width={90} style={{fontSize: '11px'}} interval={0}/>
+                            <Tooltip />
+                            <Bar dataKey="value" fill="#2563eb" radius={[0, 4, 4, 0]} name="Usuarios" barSize={20} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+
+                {/* 7. Internet */}
+                <ChartCard title="Conectividad">
+                    <ResponsiveContainer width="100%" height={250}>
+                         <BarChart data={internetData}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                            <XAxis dataKey="name" style={{fontSize: '12px'}} />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="value" fill="#db2777" radius={[4, 4, 0, 0]} name="Usuarios" />
                         </BarChart>
                     </ResponsiveContainer>
                 </ChartCard>
